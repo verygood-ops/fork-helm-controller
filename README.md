@@ -6,6 +6,15 @@
 [![license](https://img.shields.io/github/license/fluxcd/helm-controller.svg)](https://github.com/fluxcd/helm-controller/blob/main/LICENSE)
 [![release](https://img.shields.io/github/release/fluxcd/helm-controller/all.svg)](https://github.com/fluxcd/helm-controller/releases)
 
+## VGS fork
+
+```
+export IMG=190066226418.dkr.ecr.us-east-1.amazonaws.com/infra/helm-controller:v0.29.0-20250606 
+make docker-build
+assume presidio-infra
+make docker-push
+```
+
 The helm-controller is a Kubernetes operator, allowing one to declaratively
 manage Helm chart releases. It is part of a composable [GitOps toolkit](https://fluxcd.io/flux/components)
 and depends on [source-controller][] to acquire the Helm charts from Helm
