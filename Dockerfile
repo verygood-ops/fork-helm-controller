@@ -1,10 +1,10 @@
 ARG GO_VERSION=1.24
-ARG XX_VERSION=1.1.0
+ARG XX_VERSION=1.6.1
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
 # Docker buildkit multi-arch build requires golang alpine
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine as builder
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS builder
 
 # Copy the build utilities.
 COPY --from=xx / /

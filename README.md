@@ -9,9 +9,10 @@
 ## VGS fork
 
 ```
-export IMG=190066226418.dkr.ecr.us-east-1.amazonaws.com/infra/helm-controller:v0.29.0-20250606 
+today=$(date +%Y%m%d)
+export IMG="190066226418.dkr.ecr.us-east-1.amazonaws.com/infra/helm-controller:v0.29.0-$today" 
 make docker-build
-assume presidio-infra
+assume presidio/infra
 make docker-push
 ```
 
