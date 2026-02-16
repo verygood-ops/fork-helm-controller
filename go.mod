@@ -25,7 +25,7 @@ require (
 	github.com/fluxcd/pkg/auth v0.38.2
 	github.com/fluxcd/pkg/cache v0.13.0
 	github.com/fluxcd/pkg/chartutil v1.22.0
-	github.com/fluxcd/pkg/runtime v0.100.1
+	github.com/fluxcd/pkg/runtime v0.100.2
 	github.com/fluxcd/pkg/ssa v0.67.1
 	github.com/fluxcd/pkg/testserver v0.13.0
 	github.com/fluxcd/source-controller/api v1.7.2

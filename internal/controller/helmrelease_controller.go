@@ -736,7 +736,7 @@ func (r *HelmReleaseReconciler) buildRESTClientGetter(ctx context.Context, obj *
 		if err := r.Get(ctx, secretName, &secret); err != nil {
 			return nil, fmt.Errorf("could not get KubeConfig secret '%s': %w", secretName, err)
 		}
-		restConfig, err = kube.ConfigFromSecret(&secret, obj.Spec.KubeConfig.SecretRef.Key, r.KubeConfigOpts)
+		restConfig, err = kube.ConfigFromSecret(ctx, &secret, obj.Spec.KubeConfig.SecretRef.Key, r.KubeConfigOpts)
 	default:
 		return nil, errors.New("exactly one of .spec.kubeConfig.configMapRef or spec.kubeConfig.secretRef must be set")
 	}
