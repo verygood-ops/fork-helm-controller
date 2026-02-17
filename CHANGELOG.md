@@ -1,5 +1,123 @@
 # Changelog
 
+## 1.5.0
+
+**Release date:** 2026-02-20
+
+This minor release comes with Helm v4 support, server-side apply for
+Helm releases, and various bug fixes and improvements.
+
+⚠️ The `v2beta2` APIs were removed. Before upgrading the CRDs, Flux users
+must run [`flux migrate`](https://github.com/fluxcd/flux2/pull/5473) to
+migrate the cluster storage off `v2beta2`.
+
+### HelmRelease
+
+The controller now uses Helm v4, and, with this change, new default
+behaviors are being introduced (breaking changes) to keep Flux and
+Helm aligned:
+
+- Apply method is now defaulting to server-side apply for new HelmReleases.
+- Health checks now default to using kstatus for assessing readiness and
+failures of applied resources.
+
+Those defaults can be changed back to Helm v3's defaults by setting the
+feature gate `UseHelm3Defaults`. Alternatively, fine-tuning the apply
+and health check methods is also possible on a per-HelmRelease basis by
+using the following fields:
+
+- `.spec.install.serverSideApply` (boolean, default defined by `UseHelm3Defaults`)
+- `.spec.upgrade.serverSideApply` (`enabled`, `disabled` or `auto`, defaults to `auto`)
+- `.spec.rollback.serverSideApply` (`enabled`, `disabled` or `auto`, defaults to `auto`)
+- `.spec.waitStrategy.name` (`poller` or `legacy`, default defined by `UseHelm3Defaults`)
+
+Note that Helm persists the apply method in the release storage, hence
+why the `auto` value is an option for upgrade and rollback actions. When
+set to `auto`, the controller will reuse the apply method used in the last
+successful release revision, as recorded in the Helm storage, defaulting
+to client-side apply. This means that existing HelmReleases will continue
+to use client-side apply until their `.spec` is updated with
+`.spec.{upgrade|rollback}.serverSideApply: enabled`.
+
+The `poller` health check strategy uses kstatus to check the status
+of applied resources, while the `legacy` strategy uses Helm v3's
+built-in health checking behavior.
+
+The controller now can be configured to cancel in-progress health checks when a new
+reconciliation request is received, reducing the mean time to recovery (MTTR) in case
+of failed deployments. This feature is enabled by the `CancelHealthCheckOnNewRevision`
+feature gate. Note that enabling this feature gate will not cancel apply operations,
+and will only cancel health checks for managed resources: waiting for Helm hooks and
+tests will not be cancelled.
+
+Still on the health check subject, custom health checks via CEL expressions
+are now supported for HelmRelease via the `.spec.healthCheckExprs` field,
+similar to the Kustomization API. Please see the
+[CEL cheatsheet](https://fluxcd.io/flux/cheatsheets/cel-healthchecks/)
+for more information.
+
+The `--override-manager=<manager>` flag has been added for server-side apply drift
+detection and correction. This flag can be passed multiple times. Note that drift
+detection and correction in helm-controller is completely unrelated to Helm v4's
+server-side apply support, and was implemented long before Helm v4 was released.
+
+The `DirectSourceFetch` feature gate has been introduced for bypassing the cache
+when fetching source objects on reconciliations.
+
+For improved observability, inventory tracking has been added via
+`.status.inventory`. Hooks and tests are not tracked in this field.
+Only resources present in the Helm storage and CRDs are tracked.
+
+Also for improved observability, the controller now tracks the action (`install`,
+`upgrade`, `rollback`, `uninstall`, `uninstall-remediation`) in snapshots:
+`.status.history[].action`.
+
+### General updates
+
+In addition, the Kubernetes dependencies have been updated to v1.35.0,
+Kustomize has been updated to v5.8.1 and the controller is now built
+with Go 1.26.
+
+Fixes:
+- Fix state when configuration set back to current state following upgrade failure
+  [#1369](https://github.com/fluxcd/helm-controller/pull/1369)
+- Fix waiting and erroring out on garbage-collected Jobs
+  [#1402](https://github.com/fluxcd/helm-controller/pull/1402)
+- Fix controller not reconciling conditions for in-sync release
+  [#1411](https://github.com/fluxcd/helm-controller/pull/1411)
+- Fix postRenderers not causing new upgrade when applied during ongoing upgrade
+  [#1412](https://github.com/fluxcd/helm-controller/pull/1412)
+
+Improvements:
+- Upgrade Helm to v4
+  [#1383](https://github.com/fluxcd/helm-controller/pull/1383)
+  [#1403](https://github.com/fluxcd/helm-controller/pull/1403)
+- Add ServerSideApply field to HelmRelease API
+  [#1384](https://github.com/fluxcd/helm-controller/pull/1384)
+- Add `.status.inventory` to track managed objects
+  [#1385](https://github.com/fluxcd/helm-controller/pull/1385)
+- Add support for custom health checks via CEL expressions
+  [#1389](https://github.com/fluxcd/helm-controller/pull/1389)
+- Add `--override-manager` flag for server-side apply drift detection
+  [#1365](https://github.com/fluxcd/helm-controller/pull/1365)
+- Reduce the mean time to recovery (MTTR) in case of failed deployments
+  [#1392](https://github.com/fluxcd/helm-controller/pull/1392)
+- Track action in snapshots
+  [#1399](https://github.com/fluxcd/helm-controller/pull/1399)
+- Add `DirectSourceFetch` feature gate to bypass cache for source objects
+  [#1407](https://github.com/fluxcd/helm-controller/pull/1407)
+- Remove deprecated APIs in group `helm.toolkit.fluxcd.io/v2beta2`
+  [#1404](https://github.com/fluxcd/helm-controller/pull/1404)
+- Remove adoption of resources in old API versions
+  [#1396](https://github.com/fluxcd/helm-controller/pull/1396)
+- Remove duplicated struct json tag
+  [#1377](https://github.com/fluxcd/helm-controller/pull/1377)
+- Various dependency updates
+  [#1395](https://github.com/fluxcd/helm-controller/pull/1395)
+  [#1406](https://github.com/fluxcd/helm-controller/pull/1406)
+  [#1408](https://github.com/fluxcd/helm-controller/pull/1408)
+  [#1410](https://github.com/fluxcd/helm-controller/pull/1410)
+
 ## 1.4.5
 
 **Release date:** 2025-11-27
