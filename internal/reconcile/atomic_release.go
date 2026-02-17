@@ -377,12 +377,21 @@ func (r *AtomicRelease) actionForState(ctx context.Context, req *Request, state 
 			replaceCondition(req.Object, v2.RemediatedCondition, v2.ReleasedCondition, v2.UpgradeSucceededReason, msg, metav1.ConditionTrue)
 		}
 
-		// Since the release is in-sync, replace any Status=False released condition for any previous upgrade failure with Status=True
-		// This can happen when the desired configuration is changed back to match the current release following an upgrade failure
-		if conditions.IsFalse(req.Object, v2.ReleasedCondition) && conditions.GetReason(req.Object, v2.ReleasedCondition) == v2.UpgradeFailedReason {
-			cur := req.Object.Status.History.Latest()
-			msg := fmt.Sprintf(fmtUpgradeSuccess, cur.FullReleaseName(), cur.VersionedChartName())
-			conditions.MarkTrue(req.Object, v2.ReleasedCondition, v2.UpgradeSucceededReason, "%s", msg)
+		// Set Released and Ready to reflect the in-sync state if needed.
+		if !conditions.IsReady(req.Object) || !conditions.IsTrue(req.Object, v2.ReleasedCondition) {
+			var reason, msgFmt string
+			switch conditions.GetReason(req.Object, v2.ReleasedCondition) {
+			case v2.InstallFailedReason:
+				reason, msgFmt = v2.InstallSucceededReason, fmtInstallSuccess
+			case v2.UpgradeFailedReason:
+				reason, msgFmt = v2.UpgradeSucceededReason, fmtUpgradeSuccess
+			}
+			if reason != "" {
+				cur := req.Object.Status.History.Latest()
+				msg := fmt.Sprintf(msgFmt, cur.FullReleaseName(), cur.VersionedChartName())
+				conditions.MarkTrue(req.Object, v2.ReleasedCondition, reason, "%s", msg)
+				summarize(req)
+			}
 		}
 
 		return nil, nil

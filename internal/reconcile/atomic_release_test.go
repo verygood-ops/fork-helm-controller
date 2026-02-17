@@ -1550,7 +1550,27 @@ func TestAtomicRelease_actionForState(t *testing.T) {
 			want:  nil,
 			assertConditions: []metav1.Condition{
 				*conditions.TrueCondition(v2.ReleasedCondition, v2.UpgradeSucceededReason, "upgrade succeeded"),
-				*conditions.FalseCondition(meta.ReadyCondition, v2.UpgradeFailedReason, "upgrade failed"),
+				*conditions.TrueCondition(meta.ReadyCondition, v2.UpgradeSucceededReason, "upgrade succeeded"),
+			},
+		},
+		{
+			name: "in-sync release with stale install failed condition",
+			status: func(releases []*helmrelease.Release) v2.HelmReleaseStatus {
+				return v2.HelmReleaseStatus{
+					History: v2.Snapshots{
+						{Version: 1},
+					},
+					Conditions: []metav1.Condition{
+						*conditions.FalseCondition(v2.ReleasedCondition, v2.InstallFailedReason, "install failed"),
+						*conditions.FalseCondition(meta.ReadyCondition, v2.InstallFailedReason, "install failed"),
+					},
+				}
+			},
+			state: ReleaseState{Status: ReleaseStatusInSync},
+			want:  nil,
+			assertConditions: []metav1.Condition{
+				*conditions.TrueCondition(v2.ReleasedCondition, v2.InstallSucceededReason, "install succeeded"),
+				*conditions.TrueCondition(meta.ReadyCondition, v2.InstallSucceededReason, "install succeeded"),
 			},
 		},
 		{
