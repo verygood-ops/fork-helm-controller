@@ -21,8 +21,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/fluxcd/pkg/apis/meta"
-	"github.com/fluxcd/pkg/runtime/conditions"
 	"github.com/fluxcd/pkg/ssa/jsondiff"
 	"helm.sh/helm/v4/pkg/kube"
 	helmreleasecommon "helm.sh/helm/v4/pkg/release/common"
@@ -147,14 +145,17 @@ func DetermineReleaseState(ctx context.Context, cfg *action.ConfigFactory, req *
 		}
 
 		// Verify if postrender digest or common metadata digest has changed
-		// if config has not been processed. For the processed or partially processed generation,
-		// the updated observation will only be reflected at the end of a successful
-		// reconciliation. Comparing here would result the reconciliation to
-		// get stuck in this check due to a mismatch forever.  The value can't
-		// change without a new generation. Hence, compare the observed digest
-		// for new generations only.
-		ready := conditions.Get(req.Object, meta.ReadyCondition)
-		if ready != nil && ready.ObservedGeneration != req.Object.Generation {
+		// for new generations only. The observed digests are updated after
+		// each successful release action, so comparing here will not cause
+		// an infinite loop within the same reconciliation.
+		//
+		// We use the top-level status.observedGeneration rather than the
+		// Ready condition's ObservedGeneration, because the latter can be
+		// inadvertently advanced by the patch helper's conflict resolution
+		// (patchStatusConditions re-fetches the object from the API server,
+		// and conditions.Set always sets ObservedGeneration to the latest
+		// metadata.generation).
+		if req.Object.Status.ObservedGeneration != req.Object.Generation {
 			var postrenderersDigest string
 			if req.Object.Spec.PostRenderers != nil {
 				postrenderersDigest = postrender.Digest(digest.Canonical, req.Object.Spec.PostRenderers).String()
