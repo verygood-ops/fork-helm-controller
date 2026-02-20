@@ -1376,6 +1376,7 @@ func TestAtomicRelease_Reconcile_PostRenderers_Scenarios(t *testing.T) {
 			},
 			status: func(releases []*helmrelease.Release) v2.HelmReleaseStatus {
 				return v2.HelmReleaseStatus{
+					ObservedGeneration: 2, // Matches obj.Generation to skip the digest check.
 					History: v2.Snapshots{
 						release.ObservedToSnapshot(release.ObserveRelease(releases[0])),
 					},
@@ -1383,7 +1384,7 @@ func TestAtomicRelease_Reconcile_PostRenderers_Scenarios(t *testing.T) {
 						{
 							Type:               meta.ReadyCondition,
 							Status:             metav1.ConditionTrue,
-							ObservedGeneration: 2, // This is used to set processed config generation.
+							ObservedGeneration: 2,
 						},
 					},
 					ObservedPostRenderersDigest: postrender.Digest(digest.Canonical, postRenderers).String(),
@@ -2357,6 +2358,7 @@ func TestAtomicRelease_Reconcile_CommonMetadata_Scenarios(t *testing.T) {
 			},
 			status: func(releases []*helmrelease.Release) v2.HelmReleaseStatus {
 				return v2.HelmReleaseStatus{
+					ObservedGeneration: 2, // Matches obj.Generation to skip the digest check.
 					History: v2.Snapshots{
 						release.ObservedToSnapshot(release.ObserveRelease(releases[0])),
 					},
@@ -2364,7 +2366,7 @@ func TestAtomicRelease_Reconcile_CommonMetadata_Scenarios(t *testing.T) {
 						{
 							Type:               meta.ReadyCondition,
 							Status:             metav1.ConditionTrue,
-							ObservedGeneration: 2, // This is used to set processed config generation.
+							ObservedGeneration: 2,
 						},
 					},
 					ObservedPostRenderersDigest: postrender.CommonMetadataDigest(digest.Canonical, commonMetadata).String(),

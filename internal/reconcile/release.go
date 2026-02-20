@@ -36,7 +36,9 @@ import (
 
 	v2 "github.com/fluxcd/helm-controller/api/v2"
 	"github.com/fluxcd/helm-controller/internal/action"
+	"github.com/fluxcd/helm-controller/internal/digest"
 	"github.com/fluxcd/helm-controller/internal/inventory"
+	"github.com/fluxcd/helm-controller/internal/postrender"
 	"github.com/fluxcd/helm-controller/internal/release"
 	"github.com/fluxcd/helm-controller/internal/storage"
 )
@@ -206,7 +208,8 @@ func observeInventory(obj *v2.HelmRelease, chart *helmchart.Chart, getter generi
 //
 // If Ready=True, any Stalled condition is removed.
 //
-// The ObservedPostRenderersDigest is updated if the post-renderers exist.
+// The ObservedPostRenderersDigest and ObservedCommonMetadataDigest are
+// updated to reflect the current spec.
 func summarize(req *Request) {
 	var sumConds = []string{v2.RemediatedCondition, v2.ReleasedCondition}
 	if req.Object.GetTest().Enable && !req.Object.GetTest().IgnoreFailures {
@@ -256,6 +259,17 @@ func summarize(req *Request) {
 		Message:            conds[0].Message,
 		ObservedGeneration: req.Object.Generation,
 	})
+
+	// Update the observed post-renderers and common-metadata digests to
+	// reflect the current spec.
+	req.Object.Status.ObservedPostRenderersDigest = ""
+	if req.Object.Spec.PostRenderers != nil {
+		req.Object.Status.ObservedPostRenderersDigest = postrender.Digest(digest.Canonical, req.Object.Spec.PostRenderers).String()
+	}
+	req.Object.Status.ObservedCommonMetadataDigest = ""
+	if req.Object.Spec.CommonMetadata != nil {
+		req.Object.Status.ObservedCommonMetadataDigest = postrender.CommonMetadataDigest(digest.Canonical, req.Object.Spec.CommonMetadata).String()
+	}
 }
 
 // eventMessageWithLog returns an event message composed out of the given

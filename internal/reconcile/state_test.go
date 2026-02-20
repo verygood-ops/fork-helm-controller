@@ -508,17 +508,11 @@ func Test_DetermineReleaseState(t *testing.T) {
 			},
 			status: func(releases []*helmrelease.Release) v2.HelmReleaseStatus {
 				return v2.HelmReleaseStatus{
+					ObservedGeneration: 2,
 					History: v2.Snapshots{
 						release.ObservedToSnapshot(release.ObserveRelease(releases[0])),
 					},
 					ObservedPostRenderersDigest: postrender.Digest(digest.Canonical, postRenderers).String(),
-					Conditions: []metav1.Condition{
-						{
-							Type:               meta.ReadyCondition,
-							Status:             metav1.ConditionTrue,
-							ObservedGeneration: 2,
-						},
-					},
 				}
 			},
 			chart:  testutil.BuildChart(),
@@ -578,17 +572,11 @@ func Test_DetermineReleaseState(t *testing.T) {
 			},
 			status: func(releases []*helmrelease.Release) v2.HelmReleaseStatus {
 				return v2.HelmReleaseStatus{
+					ObservedGeneration: 2,
 					History: v2.Snapshots{
 						release.ObservedToSnapshot(release.ObserveRelease(releases[0])),
 					},
 					ObservedCommonMetadataDigest: postrender.CommonMetadataDigest(digest.Canonical, commonMetadata).String(),
-					Conditions: []metav1.Condition{
-						{
-							Type:               meta.ReadyCondition,
-							Status:             metav1.ConditionTrue,
-							ObservedGeneration: 2,
-						},
-					},
 				}
 			},
 			chart:  testutil.BuildChart(),
