@@ -17,7 +17,7 @@ replace (
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/fluxcd/cli-utils v0.37.1-flux.1
-	github.com/fluxcd/helm-controller/api v1.4.0
+	github.com/fluxcd/helm-controller/api v1.5.0
 	github.com/fluxcd/pkg/apis/acl v0.9.0
 	github.com/fluxcd/pkg/apis/event v0.24.0
 	github.com/fluxcd/pkg/apis/kustomize v1.15.0
@@ -28,7 +28,7 @@ require (
 	github.com/fluxcd/pkg/runtime v0.100.2
 	github.com/fluxcd/pkg/ssa v0.67.1
 	github.com/fluxcd/pkg/testserver v0.13.0
-	github.com/fluxcd/source-controller/api v1.7.2
+	github.com/fluxcd/source-controller/api v1.8.0
 	github.com/go-logr/logr v1.4.3
 	github.com/google/cel-go v0.26.1
 	github.com/google/go-cmp v0.7.0
